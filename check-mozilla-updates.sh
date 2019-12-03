@@ -37,29 +37,17 @@ function log {
 	fi
 }
 
-# Check command line parameters
-if [ "$1" == "-d" ] ; then
-	DEBUG=1
-elif [ -z "$1" ] ; then
-	DEBUG=0
-else
-	usage
-fi
-
-export https_proxy=http://proxy.local.schnabel.info:8080
-
-if [[ -f /usr/local/thunderbird/thunderbird ]] ; then
-	THUNDERBIRD=/usr/local/thunderbird/thunderbird
-else
-	THUNDERBIRD=thunderbird
-fi
-
-if [[ -f /usr/local/firefox/firefox ]] ; then
-	FIREFOX=/usr/local/firefox/firefox
-else
-	FIREFOX=firefox
-fi
-
+# Function: checkVersion()
+# Compare local version with remote version
+#
+# Parameters:
+#  $1: local version
+#  $2: remote version
+#
+# Return value:
+#  0: local version is newer or identical
+#  1: remote version is newer
+#
 function checkVersion() {
 	V1=$(echo $1 | tr -d [:alpha:])
 	V2=$(echo $2 | tr -d [:alpha:])
@@ -104,6 +92,28 @@ function checkVersion() {
 	
 	return 0;
 }
+
+# Check command line parameters
+if [ "$1" == "-d" ] ; then
+	DEBUG=1
+elif [ -z "$1" ] ; then
+	DEBUG=0
+else
+	usage
+fi
+
+# Find executables
+if [[ -f /usr/local/thunderbird/thunderbird ]] ; then
+	THUNDERBIRD=/usr/local/thunderbird/thunderbird
+else
+	THUNDERBIRD=thunderbird
+fi
+
+if [[ -f /usr/local/firefox/firefox ]] ; then
+	FIREFOX=/usr/local/firefox/firefox
+else
+	FIREFOX=firefox
+fi
 
 # Check Thunderbird
 TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/thunderbird/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -g | egrep -iv "b|esr" | tail -n 1
