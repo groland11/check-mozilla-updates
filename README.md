@@ -1,4 +1,4 @@
-# check-mozilla-status
+# check-mozilla-updates
 Check for Firefox and Thunderbird updates
 
 Simple bash script that compares local Firefox and Thunderbird versions with current versions on Mozilla download server.
