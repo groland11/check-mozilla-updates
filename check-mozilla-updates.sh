@@ -51,7 +51,7 @@ function log {
 function checkVersion() {
 	V1=$(echo $1 | tr -d [:alpha:])
 	V2=$(echo $2 | tr -d [:alpha:])
-        log $V1
+    log $V1
 	log $V2
 
 	MAJ1=$(echo $V1 | cut -d. -f1)
@@ -116,7 +116,7 @@ else
 fi
 
 # Check Thunderbird
-TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/thunderbird/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -g | egrep -iv "b|esr" | tail -n 1
+TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/thunderbird/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1
 )
 if [[ ${PIPESTATUS[0]} == 0 ]] ; then
 	TBL=$(${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
@@ -130,7 +130,7 @@ else
 fi
 
 # Check Firefox
-TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/firefox/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -g | egrep -iv "b|esr" | tail -n 1
+TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/firefox/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1
 )
 if [[ ${PIPESTATUS[0]} == 0 ]] ; then
 	TBL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
