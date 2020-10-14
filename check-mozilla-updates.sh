@@ -32,7 +32,7 @@ function usage {
 }
 
 function log {
-	if [ $DEBUG -eq 1 ] ; then
+    if [[ ${DEBUG} == 1 || $(echo "$1" | grep ERROR) ]] ; then
 		echo "$1"
 	fi
 }
@@ -51,8 +51,7 @@ function log {
 function checkVersion() {
 	V1=$(echo $1 | tr -d [:alpha:])
 	V2=$(echo $2 | tr -d [:alpha:])
-    log $V1
-	log $V2
+    log "Checking if version $V1 < $V2 ..."
 
 	MAJ1=$(echo $V1 | cut -d. -f1)
 	MIN1=$(echo $V1 | cut -d. -f2)
@@ -116,10 +115,15 @@ else
 fi
 
 # Check Thunderbird
-TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/thunderbird/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1)
-if [[ ${PIPESTATUS[0]} == 0 ]] ; then
+URL="https://ftp.mozilla.org/pub/thunderbird/releases/"
+curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
+RET=$?
+TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1)
+if [[ ${RET} == 0 ]] ; then
 	TBL=$(${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
 
+    log "Latest Thunderbird Version: ${TB}"
+    log "Local  Thunderbird Version: ${TBL}"
 	checkVersion $TBL $TB
 	if [[ $? -eq 1 ]] ; then
 		echo "Update Thunderbird ($TBL -> $TB)"
@@ -129,13 +133,18 @@ else
 fi
 
 # Check Firefox
-TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https https://ftp.mozilla.org/pub/firefox/releases/ | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|[[:alpha:]]{2,}" | tail -n 1)
-if [[ ${PIPESTATUS[0]} == 0 ]] ; then
-	TBL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
+URL="https://ftp.mozilla.org/pub/firefox/releases/"
+curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
+RET=$?
+FF=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|[[:alpha:]]{2,}" | tail -n 1)
+if [[ ${RET} == 0 ]] ; then
+	FFL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
 
-	checkVersion $TBL $TB
+    log "Latest Firefox Version: ${FF}"
+    log "Local  Firefox Version: ${FFL}"
+	checkVersion $FFL $FF
 	if [[ $? -eq 1 ]] ; then
-		echo "Update Firefox ($TBL -> $TB)"
+		echo "Update Firefox ($FFL -> $FF)"
 	fi
 else
 	log "ERROR: Failed to access Firefox releases"
