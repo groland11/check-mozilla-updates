@@ -5,7 +5,7 @@ Simple bash script that compares local Firefox and Thunderbird versions with cur
 You can use this script in a cron job if you don't want to start Firefox or Thunderbird to check for new versions themselves.
 
 ## Requirements
-- **curl** (retrieves released versions from Mozilla download server)
+- **curl** (retrieves list of all release versions from Mozilla download server)
 
 ## Usage
 ```
