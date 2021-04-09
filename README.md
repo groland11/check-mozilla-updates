@@ -9,7 +9,7 @@ You can use this script in a cron job if you don't want to start Firefox or Thun
 
 ## Usage
 ```
-Usage: check-mozilla-updates.sh [-d] {-f]
+Usage: check-mozilla-updates.sh [-d] [-f]
         -d: Output debug messages
         -f: Download latest tarballs from Mozilla server (fetch)
 ```
