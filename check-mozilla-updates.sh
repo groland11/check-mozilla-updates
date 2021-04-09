@@ -26,8 +26,9 @@
 DEBUG=0
 
 function usage {
-	echo "$(basename $0) [-d]"
+	echo "$(basename $0) [-d] [-f]"
 	echo -e "\t-d\tEnable debug output"
+	echo -e "\t-f\tDownload latest tarballs from Mozilla server (fetch)"
 	echo
 }
 
@@ -35,6 +36,16 @@ function log {
     if [[ ${DEBUG} == 1 || $(echo "$1" | grep ERROR) ]] ; then
 		echo "$1"
 	fi
+}
+
+function download {
+    FILENAME=$(basename $1)
+    if [ ! -f "${FILENAME}" ] ; then
+        log "Downloading $1 ..."
+        curl -m 3600 --tlsv1.2 --proto =https -O "$1"
+    else
+        log "${FILENAME} already exists"
+    fi
 }
 
 # Function: checkVersion()
@@ -93,12 +104,23 @@ function checkVersion() {
 }
 
 # Check command line parameters
+DEBUG=0
+FETCH=0
+
 if [ "$1" == "-d" ] ; then
 	DEBUG=1
-elif [ -z "$1" ] ; then
-	DEBUG=0
+elif [ "$1" == "-f" ] ; then
+	FETCH=1
 else
 	usage
+fi
+
+shift
+if [ "$1" == "-f" ] ; then
+    FETCH=1
+    log "Fetching latest versions from Mozilla download server"
+elif [ -n "$1" ] ; then
+    usage
 fi
 
 # Find executables
@@ -127,6 +149,8 @@ if [[ ${RET} == 0 ]] ; then
 	checkVersion $TBL $TB
 	if [[ $? -eq 1 ]] ; then
 		echo "Update Thunderbird ($TBL -> $TB)"
+        URL_DOWNLOAD="${URL}${TB}/linux-x86_64/en-US/thunderbird-${TB}.tar.bz2"
+        download ${URL_DOWNLOAD}
 	fi
 else
 	log "ERROR: Failed to access Thunderbird releases"
@@ -145,6 +169,8 @@ if [[ ${RET} == 0 ]] ; then
 	checkVersion $FFL $FF
 	if [[ $? -eq 1 ]] ; then
 		echo "Update Firefox ($FFL -> $FF)"
+        URL_DOWNLOAD="${URL}${FF}/linux-x86_64/en-US/firefox-${FF}.tar.bz2"
+        download ${URL_DOWNLOAD}
 	fi
 else
 	log "ERROR: Failed to access Firefox releases"
