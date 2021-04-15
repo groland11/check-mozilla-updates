@@ -111,7 +111,7 @@ if [ "$1" == "-d" ] ; then
 	DEBUG=1
 elif [ "$1" == "-f" ] ; then
 	FETCH=1
-else
+elif [ -n "$1" ] ; then
 	usage
 fi
 
