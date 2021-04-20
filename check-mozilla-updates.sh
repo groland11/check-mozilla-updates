@@ -26,16 +26,16 @@
 DEBUG=0
 
 function usage {
-	echo "$(basename $0) [-d] [-f]"
-	echo -e "\t-d\tEnable debug output"
-	echo -e "\t-f\tDownload latest tarballs from Mozilla server (fetch)"
-	echo
+    echo "$(basename $0) [-d] [-f]"
+    echo -e "\t-d\tEnable debug output"
+    echo -e "\t-f\tDownload latest tarballs from Mozilla server (fetch)"
+    echo
 }
 
 function log {
     if [[ ${DEBUG} == 1 || $(echo "$1" | grep ERROR) ]] ; then
-		echo "$1"
-	fi
+        echo "$1"
+    fi
 }
 
 function download {
@@ -60,47 +60,47 @@ function download {
 #  1: remote version is newer
 #
 function checkVersion() {
-	V1=$(echo $1 | tr -d [:alpha:])
-	V2=$(echo $2 | tr -d [:alpha:])
+    V1=$(echo $1 | tr -d [:alpha:])
+    V2=$(echo $2 | tr -d [:alpha:])
     log "Checking if version $V1 < $V2 ..."
 
-	MAJ1=$(echo $V1 | cut -d. -f1)
-	MIN1=$(echo $V1 | cut -d. -f2)
-	REV1=$(echo $V1 | cut -d. -f3)
+    MAJ1=$(echo $V1 | cut -d. -f1)
+    MIN1=$(echo $V1 | cut -d. -f2)
+    REV1=$(echo $V1 | cut -d. -f3)
 
-	MAJ2=$(echo $V2 | cut -d. -f1)
-	MIN2=$(echo $V2 | cut -d. -f2)
-	REV2=$(echo $V2 | cut -d. -f3)
+    MAJ2=$(echo $V2 | cut -d. -f1)
+    MIN2=$(echo $V2 | cut -d. -f2)
+    REV2=$(echo $V2 | cut -d. -f3)
 
-	if [[ $MAJ1 -lt $MAJ2 ]] ; then
-		return 1;
-	fi
+    if [[ $MAJ1 -lt $MAJ2 ]] ; then
+        return 1;
+    fi
 
-	if [[ $MAJ1 -eq $MAJ2 ]] ; then
-		if [[ -n "$MIN2" ]] ; then
-			if [[ -n "$MIN1" ]] ; then
-				if [[ $MIN1 -lt $MIN2 ]] ; then
-					return 1;
-				fi
-		
-				if [[ $MIN1 -eq $MIN2 ]] ; then
-					if [[ -n "$REV2" ]] ; then
-						if [[ -n "$REV1" ]] ; then
-							if [[ $REV1 -lt $REV2 ]] ; then
-								return 1;
-							fi
-						else
-							return 1;
-						fi
-					fi
-				fi
-			else
-				return 1;
-			fi
-		fi
-	fi
-	
-	return 0;
+    if [[ $MAJ1 -eq $MAJ2 ]] ; then
+        if [[ -n "$MIN2" ]] ; then
+            if [[ -n "$MIN1" ]] ; then
+                if [[ $MIN1 -lt $MIN2 ]] ; then
+                    return 1;
+                fi
+        
+                if [[ $MIN1 -eq $MIN2 ]] ; then
+                    if [[ -n "$REV2" ]] ; then
+                        if [[ -n "$REV1" ]] ; then
+                            if [[ $REV1 -lt $REV2 ]] ; then
+                                return 1;
+                            fi
+                        else
+                            return 1;
+                        fi
+                    fi
+                fi
+            else
+                return 1;
+            fi
+        fi
+    fi
+    
+    return 0;
 }
 
 # Check command line parameters
@@ -108,11 +108,12 @@ DEBUG=0
 FETCH=0
 
 if [ "$1" == "-d" ] ; then
-	DEBUG=1
+    DEBUG=1
 elif [ "$1" == "-f" ] ; then
-	FETCH=1
+    FETCH=1
+    log "Fetching latest versions from Mozilla download server"
 elif [ -n "$1" ] ; then
-	usage
+    usage
 fi
 
 shift
@@ -125,15 +126,15 @@ fi
 
 # Find executables
 if [[ -f /usr/local/thunderbird/thunderbird ]] ; then
-	THUNDERBIRD=/usr/local/thunderbird/thunderbird
+    THUNDERBIRD=/usr/local/thunderbird/thunderbird
 else
-	THUNDERBIRD=thunderbird
+    THUNDERBIRD=thunderbird
 fi
 
 if [[ -f /usr/local/firefox/firefox ]] ; then
-	FIREFOX=/usr/local/firefox/firefox
+    FIREFOX=/usr/local/firefox/firefox
 else
-	FIREFOX=firefox
+    FIREFOX=firefox
 fi
 
 # Check Thunderbird
@@ -142,18 +143,20 @@ curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
 RET=$?
 TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1)
 if [[ ${RET} == 0 ]] ; then
-	TBL=$(${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
+    TBL=$(${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
 
     log "Latest Thunderbird Version: ${TB}"
     log "Local  Thunderbird Version: ${TBL}"
-	checkVersion $TBL $TB
-	if [[ $? -eq 1 ]] ; then
-		echo "Update Thunderbird ($TBL -> $TB)"
-        URL_DOWNLOAD="${URL}${TB}/linux-x86_64/en-US/thunderbird-${TB}.tar.bz2"
-        download ${URL_DOWNLOAD}
-	fi
+    checkVersion $TBL $TB
+    if [[ $? -eq 1 ]] ; then
+        echo "Update Thunderbird ($TBL -> $TB)"
+        if [[ ${FETCH} -eq 1 ]] ; then
+            URL_DOWNLOAD="${URL}${TB}/linux-x86_64/en-US/thunderbird-${TB}.tar.bz2"
+            download ${URL_DOWNLOAD}
+        fi
+    fi
 else
-	log "ERROR: Failed to access Thunderbird releases"
+    log "ERROR: Failed to access Thunderbird releases"
 fi
 
 # Check Firefox
@@ -162,17 +165,19 @@ curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
 RET=$?
 FF=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|[[:alpha:]]{2,}" | tail -n 1)
 if [[ ${RET} == 0 ]] ; then
-	FFL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
+    FFL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
 
     log "Latest Firefox Version: ${FF}"
     log "Local  Firefox Version: ${FFL}"
-	checkVersion $FFL $FF
-	if [[ $? -eq 1 ]] ; then
-		echo "Update Firefox ($FFL -> $FF)"
-        URL_DOWNLOAD="${URL}${FF}/linux-x86_64/en-US/firefox-${FF}.tar.bz2"
-        download ${URL_DOWNLOAD}
-	fi
+    checkVersion $FFL $FF
+    if [[ $? -eq 1 ]] ; then
+        echo "Update Firefox ($FFL -> $FF)"
+        if [[ ${FETCH} -eq 1 ]] ; then
+            URL_DOWNLOAD="${URL}${FF}/linux-x86_64/en-US/firefox-${FF}.tar.bz2"
+            download ${URL_DOWNLOAD}
+        fi
+    fi
 else
-	log "ERROR: Failed to access Firefox releases"
+    log "ERROR: Failed to access Firefox releases"
 fi
 
