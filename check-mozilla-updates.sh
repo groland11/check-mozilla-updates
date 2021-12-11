@@ -126,15 +126,15 @@ fi
 
 # Find executables
 if [[ -f /usr/local/thunderbird/thunderbird ]] ; then
-    THUNDERBIRD=/usr/local/thunderbird/thunderbird
+    THUNDERBIRD="/usr/local/thunderbird/thunderbird"
 else
-    THUNDERBIRD=thunderbird
+    THUNDERBIRD="thunderbird"
 fi
 
 if [[ -f /usr/local/firefox/firefox ]] ; then
-    FIREFOX=/usr/local/firefox/firefox
+    FIREFOX="/usr/local/firefox/firefox"
 else
-    FIREFOX=firefox
+    FIREFOX="firefox"
 fi
 
 # Check Thunderbird
@@ -143,7 +143,7 @@ curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
 RET=$?
 TB=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|esr|latest|updates" | tail -n 1)
 if [[ ${RET} == 0 ]] ; then
-    TBL=$(${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
+    TBL=$(DISPLAY=0 ${THUNDERBIRD} -v | sed -n "s/^\s*Thunderbird\s*\(.*\)$/\1/gp")
 
     log "Latest Thunderbird Version: ${TB}"
     log "Local  Thunderbird Version: ${TBL}"
@@ -165,7 +165,7 @@ curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} 1>/dev/null 2>&1
 RET=$?
 FF=$(curl -s -f -m 10 --tlsv1.2 --proto =https ${URL} | sed -n "s/^\s\+<td><a href=\".*\">\(.*\)\/<\/a><\/td>$/\1/gp" | sort -V | egrep -iv "b|[[:alpha:]]{2,}" | tail -n 1)
 if [[ ${RET} == 0 ]] ; then
-    FFL=$(${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
+    FFL=$(DISPLAY=0 ${FIREFOX} -v | sed -n "s/^.*Firefox\s*\(.*\)$/\1/gp")
 
     log "Latest Firefox Version: ${FF}"
     log "Local  Firefox Version: ${FFL}"
